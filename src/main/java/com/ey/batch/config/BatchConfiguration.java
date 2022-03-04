@@ -18,8 +18,12 @@ import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -37,12 +41,8 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-   
-    
-
     @Bean
     public JdbcCursorItemReader<InputDto> itemReader(@Autowired DataSource dataSource) {
-        
         return new JdbcCursorItemReaderBuilder<InputDto>()
                 .name("cursorItemReader")
                 .dataSource(dataSource)
@@ -90,12 +90,29 @@ public class BatchConfiguration {
         SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor("spring_batch") ;
         simpleAsyncTaskExecutor.setConcurrencyLimit(5);
         return simpleAsyncTaskExecutor;
-        
-
     }
 
     @Bean
     public JdbcTemplate jdbcTemplate(@Autowired DataSource dataSource) {
         return new JdbcTemplate(dataSource);
+    }
+
+    @Bean
+    @Primary
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource h2DataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.saphana")
+    public DataSource sapHanaDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.snowflake")
+    public DataSource snowFlakeDataSource() {
+        return DataSourceBuilder.create().build();
     }
 }
