@@ -20,6 +20,8 @@ import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuild
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -35,12 +37,17 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
+   
+    
+
     @Bean
     public JdbcCursorItemReader<InputDto> itemReader(@Autowired DataSource dataSource) {
+        
         return new JdbcCursorItemReaderBuilder<InputDto>()
                 .name("cursorItemReader")
                 .dataSource(dataSource)
                 .sql("SELECT firstName, lastName FROM Person ORDER BY firstName ASC")
+                .verifyCursorPosition(false)
                 .rowMapper(new BeanPropertyRowMapper<>(InputDto.class))
                 .build();
     }
@@ -60,8 +67,7 @@ public class BatchConfiguration {
                 .get("createEmployeeJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
-                .flow(step1)
-                .end()
+                .start(step1)
                 .build();
     }
 
@@ -70,11 +76,22 @@ public class BatchConfiguration {
                       InputItemProcessor processor) {
         return stepBuilderFactory
                 .get("step1")
-                .<InputDto, OutputDto>chunk(2)
+                .<InputDto, OutputDto>chunk(1)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)
+                .taskExecutor(taskExecutor())
                 .build();
+    }
+
+
+    @Bean
+    public TaskExecutor taskExecutor(){
+        SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor("spring_batch") ;
+        simpleAsyncTaskExecutor.setConcurrencyLimit(5);
+        return simpleAsyncTaskExecutor;
+        
+
     }
 
     @Bean

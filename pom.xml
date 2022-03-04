@@ -15,7 +15,9 @@
 	<description>POC for Spring Batch</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<property name="verifyCursorPosition" value="false"/>
 	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -34,6 +36,10 @@
 			<groupId>org.springframework.batch</groupId>
 			<artifactId>spring-batch-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
 		</dependency>
 	</dependencies>
 
